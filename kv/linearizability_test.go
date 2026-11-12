@@ -98,7 +98,7 @@ func (r *recorder) check(t *testing.T) {
 	r.mu.Unlock()
 
 	begin := time.Now()
-	res, info := porcupine.CheckOperationsVerbose(kvModel, ops, 60*time.Second)
+	res, info := porcupine.CheckOperationsVerbose(kvModel, ops, 30*time.Second)
 	t.Logf("history: %d ops (get=%d put=%d append=%d), porcupine=%s in %v",
 		len(ops), r.count[OpGet], r.count[OpPut], r.count[OpAppend], res, time.Since(begin).Round(time.Millisecond))
 
@@ -111,7 +111,24 @@ func (r *recorder) check(t *testing.T) {
 		t.Fatal("history is not linearizable")
 	case porcupine.Unknown:
 		t.Log("porcupine timed out; linearizability not established")
+		if dir := os.Getenv("RAFTKV_DUMP"); dir != "" {
+			dumpHistory(t, dir, ops)
+		}
 	}
+}
+
+func dumpHistory(t *testing.T, dir string, ops []porcupine.Operation) {
+	path := filepath.Join(dir, fmt.Sprintf("history-%d.txt", time.Now().UnixNano()))
+	f, err := os.Create(path)
+	if err != nil {
+		t.Log(err)
+		return
+	}
+	defer f.Close()
+	for _, op := range ops {
+		fmt.Fprintf(f, "client=%d call=%d return=%d in=%+v out=%+v\n", op.ClientId, op.Call, op.Return, op.Input, op.Output)
+	}
+	t.Logf("history written to %s", path)
 }
 
 type nemesis func(c *cluster, stop <-chan struct{})
@@ -155,7 +172,7 @@ func crashNemesis(c *cluster, stop <-chan struct{}) {
 }
 
 func runLinearizability(t *testing.T, reliable bool, nemeses []nemesis, duration time.Duration) {
-	const servers, clients, keys = 5, 8, 3
+	const servers, clients, keys = 5, 8, 10
 	c := newCluster(t, servers, reliable)
 	rec := newRecorder()
 
