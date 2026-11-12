@@ -268,4 +268,4 @@ file and caught up. The same flow works under `docker compose`
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+Apache-2.0, see [LICENSE](LICENSE).
