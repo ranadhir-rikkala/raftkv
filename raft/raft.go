@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -17,6 +18,8 @@ import (
 )
 
 const tick = 10 * time.Millisecond
+
+var errKilled = errors.New("raft: node is shut down")
 
 type Raft struct {
 	mu        sync.Mutex
@@ -252,6 +255,9 @@ func (rf *Raft) becomeLeader() {
 
 // RequestVote is the RequestVote RPC handler.
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) error {
+	if rf.killed() {
+		return errKilled
+	}
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 	if args.Term > rf.currentTerm {
@@ -274,6 +280,9 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) erro
 
 // AppendEntries is the AppendEntries RPC handler, also used as heartbeat.
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) error {
+	if rf.killed() {
+		return errKilled
+	}
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 	reply.Term = rf.currentTerm
