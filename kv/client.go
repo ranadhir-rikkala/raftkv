@@ -27,9 +27,11 @@ func NewClerk(servers []transport.Endpoint) *Clerk {
 	if _, err := rand.Read(b[:]); err != nil {
 		panic(err)
 	}
+	id := int64(binary.LittleEndian.Uint64(b[:]) >> 1)
 	return &Clerk{
 		servers:     servers,
-		clientID:    int64(binary.LittleEndian.Uint64(b[:]) >> 1),
+		leader:      int(id % int64(len(servers))),
+		clientID:    id,
 		callTimeout: 1500 * time.Millisecond,
 	}
 }
