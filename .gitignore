@@ -1,0 +1,6 @@
+/bin/
+/.cluster/
+*.test
+*.out
+coverage.*
+.DS_Store

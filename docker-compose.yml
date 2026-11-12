@@ -1,0 +1,26 @@
+x-node: &node
+  build: .
+  image: raftkv:dev
+  restart: unless-stopped
+
+services:
+  node0:
+    <<: *node
+    command: ["-id=0", "-listen=:7000", "-peers=node0:7000,node1:7000,node2:7000", "-data=/data"]
+    ports: ["7001:7000"]
+    volumes: ["node0:/data"]
+  node1:
+    <<: *node
+    command: ["-id=1", "-listen=:7000", "-peers=node0:7000,node1:7000,node2:7000", "-data=/data"]
+    ports: ["7002:7000"]
+    volumes: ["node1:/data"]
+  node2:
+    <<: *node
+    command: ["-id=2", "-listen=:7000", "-peers=node0:7000,node1:7000,node2:7000", "-data=/data"]
+    ports: ["7003:7000"]
+    volumes: ["node2:/data"]
+
+volumes:
+  node0:
+  node1:
+  node2:
