@@ -2,4 +2,4 @@ module github.com/ranadhir-rikkala/raftkv
 
 go 1.24
 
-require github.com/anishathalye/porcupine v1.3.1 // indirect
+require github.com/anishathalye/porcupine v1.3.1
